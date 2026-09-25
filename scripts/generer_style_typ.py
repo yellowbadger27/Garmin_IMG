@@ -35,6 +35,10 @@ RESOLUTION = 20
 
 TAILLE_ICONE = P.TAILLE_ICONE
 
+# Action mkgmap qui copie le tag name (champ d'étiquette choisi) dans
+# l'étiquette Garmin. Sans elle, mkgmap n'affiche aucune étiquette.
+ETIQUETTE = "{name '${name}'}"
+
 
 def sans_accents(texte):
     # Les chaînes du TYP restent en ASCII pour éviter tout souci d'encodage
@@ -63,7 +67,7 @@ def generer_style():
             code = P.code_ligne(cle_c, cle_l)
             lignes.append(
                 f"garmin_geom=ligne & garmin_couleur={cle_c} & garmin_largeur={cle_l} "
-                f"[0x{code:02x} resolution {RESOLUTION}]"
+                f"{ETIQUETTE} [0x{code:02x} resolution {RESOLUTION}]"
             )
     ecrire(os.path.join(DOSSIER_STYLE, "lines"), lignes)
 
@@ -71,14 +75,14 @@ def generer_style():
     for cle_c, _, _ in P.COULEURS:
         code = P.code_polygone(cle_c)
         polygones.append(
-            f"garmin_geom=polygone & garmin_couleur={cle_c} [0x{code:02x} resolution {RESOLUTION}]"
+            f"garmin_geom=polygone & garmin_couleur={cle_c} {ETIQUETTE} [0x{code:02x} resolution {RESOLUTION}]"
         )
     ecrire(os.path.join(DOSSIER_STYLE, "polygons"), polygones)
 
     points = list(entete)
     for cle_s, _, _, _ in P.symboles():
         code = P.code_point(cle_s)
-        points.append(f"garmin_symbole={cle_s} [0x{code:04x} resolution {RESOLUTION}]")
+        points.append(f"garmin_symbole={cle_s} {ETIQUETTE} [0x{code:04x} resolution {RESOLUTION}]")
     ecrire(os.path.join(DOSSIER_STYLE, "points"), points)
 
     ecrire(os.path.join(DOSSIER_STYLE, "info"), [

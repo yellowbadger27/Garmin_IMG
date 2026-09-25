@@ -260,14 +260,7 @@ class GarminIMGDialog(QtWidgets.QDialog, FORM_CLASS):
                             anneau_exterieur = polygone[0]
                             if len(anneau_exterieur) < 3:
                                 continue
-                            refs = []
-                            for pt in anneau_exterieur:
-                                nid = node_id[0]
-                                node_id[0] += 1
-                                nodes_xml.append(
-                                    f'<node id="{nid}" lat="{pt.y():.7f}" lon="{pt.x():.7f}" version="1"/>'
-                                )
-                                refs.append(f'<nd ref="{nid}"/>')
+                            refs = self._anneau_ferme(anneau_exterieur, node_id, nodes_xml)
                             wid = way_id[0]
                             way_id[0] += 1
                             tags_polygone = tags + ['<tag k="area" v="yes"/>']
@@ -283,14 +276,7 @@ class GarminIMGDialog(QtWidgets.QDialog, FORM_CLASS):
                             for idx, anneau in enumerate(polygone):
                                 if len(anneau) < 3:
                                     continue
-                                refs = []
-                                for pt in anneau:
-                                    nid = node_id[0]
-                                    node_id[0] += 1
-                                    nodes_xml.append(
-                                        f'<node id="{nid}" lat="{pt.y():.7f}" lon="{pt.x():.7f}" version="1"/>'
-                                    )
-                                    refs.append(f'<nd ref="{nid}"/>')
+                                refs = self._anneau_ferme(anneau, node_id, nodes_xml)
                                 wid = way_id[0]
                                 way_id[0] += 1
                                 ways_xml.append(f'<way id="{wid}" version="1">' + "".join(refs) + "</way>")
@@ -319,6 +305,27 @@ class GarminIMGDialog(QtWidgets.QDialog, FORM_CLASS):
 
         return nb_entites
 
+    @staticmethod
+    def _anneau_ferme(anneau, node_id, nodes_xml):
+        """Écrit les nœuds d'un anneau de polygone et retourne les <nd> du way.
+
+        Dans QGIS, le dernier point d'un anneau répète le premier. En OSM, un
+        way n'est fermé que si son dernier nœud est LE MÊME nœud (même id) que
+        le premier : on réutilise donc l'id du premier nœud. Sans ça, mkgmap
+        considère le way comme ouvert et ignore le polygone.
+        """
+        points = list(anneau)
+        if len(points) > 1 and points[0] == points[-1]:
+            points = points[:-1]
+        refs = []
+        for pt in points:
+            nid = node_id[0]
+            node_id[0] += 1
+            nodes_xml.append(f'<node id="{nid}" lat="{pt.y():.7f}" lon="{pt.x():.7f}" version="1"/>')
+            refs.append(f'<nd ref="{nid}"/>')
+        refs.append(refs[0])
+        return refs
+
     def _lancer_mkgmap(self, java_path, mkgmap_path, style_dir, typ_path, osm_path, resultat_dir, nom):
         # mapname doit être un identifiant numérique de 8 chiffres (contrainte
         # du format Garmin) - dérivé de façon stable (MD5) à partir du nom choisi
@@ -344,6 +351,11 @@ class GarminIMGDialog(QtWidgets.QDialog, FORM_CLASS):
                 "--product-id=1",
                 # Conserve les accents (é, è, à...) dans les étiquettes
                 "--code-page=1252",
+                # Conserve les minuscules (sinon toutes les étiquettes sont en majuscules)
+                "--lower-case",
+                # Crée un point d'étiquette au centre de chaque polygone
+                # (voir lib/style_garmin_img/points)
+                "--add-pois-to-areas",
                 # Produit un gmapsupp.img qui contient la carte ET le TYP :
                 # sans cette option, le TYP n'est pas intégré et le GPS
                 # affiche ses couleurs par défaut
@@ -556,7 +568,8 @@ class GarminIMGDialog(QtWidgets.QDialog, FORM_CLASS):
             if type_geom == QgsWkbTypes.PointGeometry:
                 combo_couleur = self._combo_symboles(couleur_qgis)
             else:
-                combo_couleur = self._combo_couleurs(couleur_qgis)
+                # Lignes et polygones : pastille de couleur seule, sans le nom
+                combo_couleur = self._combo_couleurs(couleur_qgis, avec_texte=False)
             self.tblCouches.setCellWidget(row, self.COL_COULEUR, combo_couleur)
 
             # Largeur : seulement pour les lignes
@@ -586,11 +599,14 @@ class GarminIMGDialog(QtWidgets.QDialog, FORM_CLASS):
     # Menus déroulants de couleurs et de symboles
     # ------------------------------------------------------------------
 
-    def _combo_couleurs(self, couleur_qgis):
+    def _combo_couleurs(self, couleur_qgis, avec_texte=True):
         combo = QComboBox()
-        combo.setIconSize(QSize(28, 12))
+        taille = QSize(28, 12) if avec_texte else QSize(100, 14)
+        combo.setIconSize(taille)
         for cle, libelle, hexa in palette.COULEURS:
-            combo.addItem(self._icone_couleur(hexa), libelle, cle)
+            combo.addItem(self._icone_couleur(hexa, taille), libelle if avec_texte else "", cle)
+            # Le nom de la couleur reste disponible en info-bulle
+            combo.setItemData(combo.count() - 1, libelle, Qt.ToolTipRole)
         if couleur_qgis is not None:
             cles = [c for c, _, _ in palette.COULEURS]
             combo.setCurrentIndex(cles.index(self._couleur_la_plus_proche(couleur_qgis, cles)))
@@ -619,12 +635,12 @@ class GarminIMGDialog(QtWidgets.QDialog, FORM_CLASS):
         return min(cles, key=distance)
 
     @staticmethod
-    def _icone_couleur(hexa):
-        pixmap = QPixmap(28, 12)
+    def _icone_couleur(hexa, taille=QSize(28, 12)):
+        pixmap = QPixmap(taille)
         pixmap.fill(QColor(hexa))
         painter = QPainter(pixmap)
         painter.setPen(QColor("#000000"))
-        painter.drawRect(0, 0, 27, 11)
+        painter.drawRect(0, 0, taille.width() - 1, taille.height() - 1)
         painter.end()
         return QIcon(pixmap)
 
