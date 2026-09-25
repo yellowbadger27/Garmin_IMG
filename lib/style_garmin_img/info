@@ -1,0 +1,6 @@
+summary: Style du plugin garmin_img (palette de couleurs)
+version=2.0
+description {
+Style généré à partir de palette.py : une règle par couleur/largeur
+(lignes), par couleur (polygones) et par symbole (points).
+}

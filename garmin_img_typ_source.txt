@@ -1,0 +1,1194 @@
+; Fichier généré par scripts/generer_style_typ.py - ne pas modifier à la main
+[_id]
+FID=6543
+ProductCode=1
+CodePage=1252
+[end]
+
+[_drawOrder]
+Type=0x01,1
+Type=0x02,1
+Type=0x03,1
+Type=0x04,1
+Type=0x05,1
+Type=0x06,1
+Type=0x07,1
+Type=0x08,1
+Type=0x09,1
+Type=0x0a,1
+Type=0x0b,1
+Type=0x0c,1
+Type=0x0d,1
+Type=0x0e,1
+Type=0x0f,1
+Type=0x10,1
+[end]
+
+[_line]
+Type=0x01
+String=Rouge (mince)
+LineWidth=1
+Xpm="0 0 1 0"
+"a c #E8210C"
+[end]
+
+[_line]
+Type=0x02
+String=Rouge (moyen)
+LineWidth=3
+Xpm="0 0 1 0"
+"a c #E8210C"
+[end]
+
+[_line]
+Type=0x03
+String=Rouge (large)
+LineWidth=5
+Xpm="0 0 1 0"
+"a c #E8210C"
+[end]
+
+[_line]
+Type=0x04
+String=Orange (mince)
+LineWidth=1
+Xpm="0 0 1 0"
+"a c #FF8C00"
+[end]
+
+[_line]
+Type=0x05
+String=Orange (moyen)
+LineWidth=3
+Xpm="0 0 1 0"
+"a c #FF8C00"
+[end]
+
+[_line]
+Type=0x06
+String=Orange (large)
+LineWidth=5
+Xpm="0 0 1 0"
+"a c #FF8C00"
+[end]
+
+[_line]
+Type=0x07
+String=Jaune (mince)
+LineWidth=1
+Xpm="0 0 1 0"
+"a c #FFE000"
+[end]
+
+[_line]
+Type=0x08
+String=Jaune (moyen)
+LineWidth=3
+Xpm="0 0 1 0"
+"a c #FFE000"
+[end]
+
+[_line]
+Type=0x09
+String=Jaune (large)
+LineWidth=5
+Xpm="0 0 1 0"
+"a c #FFE000"
+[end]
+
+[_line]
+Type=0x0a
+String=Vert lime (mince)
+LineWidth=1
+Xpm="0 0 1 0"
+"a c #9ACD00"
+[end]
+
+[_line]
+Type=0x0b
+String=Vert lime (moyen)
+LineWidth=3
+Xpm="0 0 1 0"
+"a c #9ACD00"
+[end]
+
+[_line]
+Type=0x0c
+String=Vert lime (large)
+LineWidth=5
+Xpm="0 0 1 0"
+"a c #9ACD00"
+[end]
+
+[_line]
+Type=0x0d
+String=Vert (mince)
+LineWidth=1
+Xpm="0 0 1 0"
+"a c #2E9A12"
+[end]
+
+[_line]
+Type=0x0e
+String=Vert (moyen)
+LineWidth=3
+Xpm="0 0 1 0"
+"a c #2E9A12"
+[end]
+
+[_line]
+Type=0x0f
+String=Vert (large)
+LineWidth=5
+Xpm="0 0 1 0"
+"a c #2E9A12"
+[end]
+
+[_line]
+Type=0x10
+String=Vert fonce (mince)
+LineWidth=1
+Xpm="0 0 1 0"
+"a c #1E5A0E"
+[end]
+
+[_line]
+Type=0x11
+String=Vert fonce (moyen)
+LineWidth=3
+Xpm="0 0 1 0"
+"a c #1E5A0E"
+[end]
+
+[_line]
+Type=0x12
+String=Vert fonce (large)
+LineWidth=5
+Xpm="0 0 1 0"
+"a c #1E5A0E"
+[end]
+
+[_line]
+Type=0x13
+String=Cyan pale (mince)
+LineWidth=1
+Xpm="0 0 1 0"
+"a c #B8F0FF"
+[end]
+
+[_line]
+Type=0x14
+String=Cyan pale (moyen)
+LineWidth=3
+Xpm="0 0 1 0"
+"a c #B8F0FF"
+[end]
+
+[_line]
+Type=0x15
+String=Cyan pale (large)
+LineWidth=5
+Xpm="0 0 1 0"
+"a c #B8F0FF"
+[end]
+
+[_line]
+Type=0x16
+String=Bleu (mince)
+LineWidth=1
+Xpm="0 0 1 0"
+"a c #0A8FD0"
+[end]
+
+[_line]
+Type=0x17
+String=Bleu (moyen)
+LineWidth=3
+Xpm="0 0 1 0"
+"a c #0A8FD0"
+[end]
+
+[_line]
+Type=0x18
+String=Bleu (large)
+LineWidth=5
+Xpm="0 0 1 0"
+"a c #0A8FD0"
+[end]
+
+[_line]
+Type=0x19
+String=Bleu marine (mince)
+LineWidth=1
+Xpm="0 0 1 0"
+"a c #0B3A6E"
+[end]
+
+[_line]
+Type=0x1a
+String=Bleu marine (moyen)
+LineWidth=3
+Xpm="0 0 1 0"
+"a c #0B3A6E"
+[end]
+
+[_line]
+Type=0x1b
+String=Bleu marine (large)
+LineWidth=5
+Xpm="0 0 1 0"
+"a c #0B3A6E"
+[end]
+
+[_line]
+Type=0x1c
+String=Violet (mince)
+LineWidth=1
+Xpm="0 0 1 0"
+"a c #8A2BE2"
+[end]
+
+[_line]
+Type=0x1d
+String=Violet (moyen)
+LineWidth=3
+Xpm="0 0 1 0"
+"a c #8A2BE2"
+[end]
+
+[_line]
+Type=0x1e
+String=Violet (large)
+LineWidth=5
+Xpm="0 0 1 0"
+"a c #8A2BE2"
+[end]
+
+[_line]
+Type=0x1f
+String=Rose (mince)
+LineWidth=1
+Xpm="0 0 1 0"
+"a c #FF66CC"
+[end]
+
+[_line]
+Type=0x26
+String=Rose (moyen)
+LineWidth=3
+Xpm="0 0 1 0"
+"a c #FF66CC"
+[end]
+
+[_line]
+Type=0x27
+String=Rose (large)
+LineWidth=5
+Xpm="0 0 1 0"
+"a c #FF66CC"
+[end]
+
+[_line]
+Type=0x28
+String=Brun (mince)
+LineWidth=1
+Xpm="0 0 1 0"
+"a c #6B3A00"
+[end]
+
+[_line]
+Type=0x29
+String=Brun (moyen)
+LineWidth=3
+Xpm="0 0 1 0"
+"a c #6B3A00"
+[end]
+
+[_line]
+Type=0x2a
+String=Brun (large)
+LineWidth=5
+Xpm="0 0 1 0"
+"a c #6B3A00"
+[end]
+
+[_line]
+Type=0x2b
+String=Noir (mince)
+LineWidth=1
+Xpm="0 0 1 0"
+"a c #000000"
+[end]
+
+[_line]
+Type=0x2c
+String=Noir (moyen)
+LineWidth=3
+Xpm="0 0 1 0"
+"a c #000000"
+[end]
+
+[_line]
+Type=0x2d
+String=Noir (large)
+LineWidth=5
+Xpm="0 0 1 0"
+"a c #000000"
+[end]
+
+[_line]
+Type=0x2e
+String=Gris fonce (mince)
+LineWidth=1
+Xpm="0 0 1 0"
+"a c #404040"
+[end]
+
+[_line]
+Type=0x2f
+String=Gris fonce (moyen)
+LineWidth=3
+Xpm="0 0 1 0"
+"a c #404040"
+[end]
+
+[_line]
+Type=0x30
+String=Gris fonce (large)
+LineWidth=5
+Xpm="0 0 1 0"
+"a c #404040"
+[end]
+
+[_line]
+Type=0x31
+String=Gris (mince)
+LineWidth=1
+Xpm="0 0 1 0"
+"a c #909090"
+[end]
+
+[_line]
+Type=0x32
+String=Gris (moyen)
+LineWidth=3
+Xpm="0 0 1 0"
+"a c #909090"
+[end]
+
+[_line]
+Type=0x33
+String=Gris (large)
+LineWidth=5
+Xpm="0 0 1 0"
+"a c #909090"
+[end]
+
+[_line]
+Type=0x34
+String=Blanc (mince)
+LineWidth=1
+Xpm="0 0 1 0"
+"a c #FFFFFF"
+[end]
+
+[_line]
+Type=0x35
+String=Blanc (moyen)
+LineWidth=3
+Xpm="0 0 1 0"
+"a c #FFFFFF"
+[end]
+
+[_line]
+Type=0x36
+String=Blanc (large)
+LineWidth=5
+Xpm="0 0 1 0"
+"a c #FFFFFF"
+[end]
+
+[_polygon]
+Type=0x01
+String=Rouge
+Xpm="0 0 1 0"
+"a c #E8210C"
+[end]
+
+[_polygon]
+Type=0x02
+String=Orange
+Xpm="0 0 1 0"
+"a c #FF8C00"
+[end]
+
+[_polygon]
+Type=0x03
+String=Jaune
+Xpm="0 0 1 0"
+"a c #FFE000"
+[end]
+
+[_polygon]
+Type=0x04
+String=Vert lime
+Xpm="0 0 1 0"
+"a c #9ACD00"
+[end]
+
+[_polygon]
+Type=0x05
+String=Vert
+Xpm="0 0 1 0"
+"a c #2E9A12"
+[end]
+
+[_polygon]
+Type=0x06
+String=Vert fonce
+Xpm="0 0 1 0"
+"a c #1E5A0E"
+[end]
+
+[_polygon]
+Type=0x07
+String=Cyan pale
+Xpm="0 0 1 0"
+"a c #B8F0FF"
+[end]
+
+[_polygon]
+Type=0x08
+String=Bleu
+Xpm="0 0 1 0"
+"a c #0A8FD0"
+[end]
+
+[_polygon]
+Type=0x09
+String=Bleu marine
+Xpm="0 0 1 0"
+"a c #0B3A6E"
+[end]
+
+[_polygon]
+Type=0x0a
+String=Violet
+Xpm="0 0 1 0"
+"a c #8A2BE2"
+[end]
+
+[_polygon]
+Type=0x0b
+String=Rose
+Xpm="0 0 1 0"
+"a c #FF66CC"
+[end]
+
+[_polygon]
+Type=0x0c
+String=Brun
+Xpm="0 0 1 0"
+"a c #6B3A00"
+[end]
+
+[_polygon]
+Type=0x0d
+String=Noir
+Xpm="0 0 1 0"
+"a c #000000"
+[end]
+
+[_polygon]
+Type=0x0e
+String=Gris fonce
+Xpm="0 0 1 0"
+"a c #404040"
+[end]
+
+[_polygon]
+Type=0x0f
+String=Gris
+Xpm="0 0 1 0"
+"a c #909090"
+[end]
+
+[_polygon]
+Type=0x10
+String=Blanc
+Xpm="0 0 1 0"
+"a c #FFFFFF"
+[end]
+
+[_point]
+Type=0x64
+SubType=0x00
+String=Rond rouge
+DayXpm="11 11 3 1"
+"a c #E8210C"
+"b c #000000"
+". c none"
+"....bbb...."
+"..bbaaabb.."
+".baaaaaaab."
+".baaaaaaab."
+"baaaaaaaaab"
+"baaaaaaaaab"
+"baaaaaaaaab"
+".baaaaaaab."
+".baaaaaaab."
+"..bbaaabb.."
+"....bbb...."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x01
+String=Rond orange
+DayXpm="11 11 3 1"
+"a c #FF8C00"
+"b c #000000"
+". c none"
+"....bbb...."
+"..bbaaabb.."
+".baaaaaaab."
+".baaaaaaab."
+"baaaaaaaaab"
+"baaaaaaaaab"
+"baaaaaaaaab"
+".baaaaaaab."
+".baaaaaaab."
+"..bbaaabb.."
+"....bbb...."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x02
+String=Rond jaune
+DayXpm="11 11 3 1"
+"a c #FFE000"
+"b c #000000"
+". c none"
+"....bbb...."
+"..bbaaabb.."
+".baaaaaaab."
+".baaaaaaab."
+"baaaaaaaaab"
+"baaaaaaaaab"
+"baaaaaaaaab"
+".baaaaaaab."
+".baaaaaaab."
+"..bbaaabb.."
+"....bbb...."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x03
+String=Rond vert
+DayXpm="11 11 3 1"
+"a c #2E9A12"
+"b c #000000"
+". c none"
+"....bbb...."
+"..bbaaabb.."
+".baaaaaaab."
+".baaaaaaab."
+"baaaaaaaaab"
+"baaaaaaaaab"
+"baaaaaaaaab"
+".baaaaaaab."
+".baaaaaaab."
+"..bbaaabb.."
+"....bbb...."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x04
+String=Rond bleu
+DayXpm="11 11 3 1"
+"a c #0A8FD0"
+"b c #000000"
+". c none"
+"....bbb...."
+"..bbaaabb.."
+".baaaaaaab."
+".baaaaaaab."
+"baaaaaaaaab"
+"baaaaaaaaab"
+"baaaaaaaaab"
+".baaaaaaab."
+".baaaaaaab."
+"..bbaaabb.."
+"....bbb...."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x05
+String=Rond violet
+DayXpm="11 11 3 1"
+"a c #8A2BE2"
+"b c #000000"
+". c none"
+"....bbb...."
+"..bbaaabb.."
+".baaaaaaab."
+".baaaaaaab."
+"baaaaaaaaab"
+"baaaaaaaaab"
+"baaaaaaaaab"
+".baaaaaaab."
+".baaaaaaab."
+"..bbaaabb.."
+"....bbb...."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x06
+String=Rond noir
+DayXpm="11 11 3 1"
+"a c #000000"
+"b c #FFFFFF"
+". c none"
+"....bbb...."
+"..bbaaabb.."
+".baaaaaaab."
+".baaaaaaab."
+"baaaaaaaaab"
+"baaaaaaaaab"
+"baaaaaaaaab"
+".baaaaaaab."
+".baaaaaaab."
+"..bbaaabb.."
+"....bbb...."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x07
+String=Rond blanc
+DayXpm="11 11 3 1"
+"a c #FFFFFF"
+"b c #000000"
+". c none"
+"....bbb...."
+"..bbaaabb.."
+".baaaaaaab."
+".baaaaaaab."
+"baaaaaaaaab"
+"baaaaaaaaab"
+"baaaaaaaaab"
+".baaaaaaab."
+".baaaaaaab."
+"..bbaaabb.."
+"....bbb...."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x08
+String=Carre rouge
+DayXpm="11 11 3 1"
+"a c #E8210C"
+"b c #000000"
+". c none"
+"..........."
+".bbbbbbbbb."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".bbbbbbbbb."
+"..........."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x09
+String=Carre orange
+DayXpm="11 11 3 1"
+"a c #FF8C00"
+"b c #000000"
+". c none"
+"..........."
+".bbbbbbbbb."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".bbbbbbbbb."
+"..........."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x0a
+String=Carre jaune
+DayXpm="11 11 3 1"
+"a c #FFE000"
+"b c #000000"
+". c none"
+"..........."
+".bbbbbbbbb."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".bbbbbbbbb."
+"..........."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x0b
+String=Carre vert
+DayXpm="11 11 3 1"
+"a c #2E9A12"
+"b c #000000"
+". c none"
+"..........."
+".bbbbbbbbb."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".bbbbbbbbb."
+"..........."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x0c
+String=Carre bleu
+DayXpm="11 11 3 1"
+"a c #0A8FD0"
+"b c #000000"
+". c none"
+"..........."
+".bbbbbbbbb."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".bbbbbbbbb."
+"..........."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x0d
+String=Carre violet
+DayXpm="11 11 3 1"
+"a c #8A2BE2"
+"b c #000000"
+". c none"
+"..........."
+".bbbbbbbbb."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".bbbbbbbbb."
+"..........."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x0e
+String=Carre noir
+DayXpm="11 11 3 1"
+"a c #000000"
+"b c #FFFFFF"
+". c none"
+"..........."
+".bbbbbbbbb."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".bbbbbbbbb."
+"..........."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x0f
+String=Carre blanc
+DayXpm="11 11 3 1"
+"a c #FFFFFF"
+"b c #000000"
+". c none"
+"..........."
+".bbbbbbbbb."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".baaaaaaab."
+".bbbbbbbbb."
+"..........."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x10
+String=Diamant rouge
+DayXpm="11 11 3 1"
+"a c #E8210C"
+"b c #000000"
+". c none"
+".....b....."
+"....bab...."
+"...baaab..."
+"..baaaaab.."
+".baaaaaaab."
+"baaaaaaaaab"
+".baaaaaaab."
+"..baaaaab.."
+"...baaab..."
+"....bab...."
+".....b....."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x11
+String=Diamant orange
+DayXpm="11 11 3 1"
+"a c #FF8C00"
+"b c #000000"
+". c none"
+".....b....."
+"....bab...."
+"...baaab..."
+"..baaaaab.."
+".baaaaaaab."
+"baaaaaaaaab"
+".baaaaaaab."
+"..baaaaab.."
+"...baaab..."
+"....bab...."
+".....b....."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x12
+String=Diamant jaune
+DayXpm="11 11 3 1"
+"a c #FFE000"
+"b c #000000"
+". c none"
+".....b....."
+"....bab...."
+"...baaab..."
+"..baaaaab.."
+".baaaaaaab."
+"baaaaaaaaab"
+".baaaaaaab."
+"..baaaaab.."
+"...baaab..."
+"....bab...."
+".....b....."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x13
+String=Diamant vert
+DayXpm="11 11 3 1"
+"a c #2E9A12"
+"b c #000000"
+". c none"
+".....b....."
+"....bab...."
+"...baaab..."
+"..baaaaab.."
+".baaaaaaab."
+"baaaaaaaaab"
+".baaaaaaab."
+"..baaaaab.."
+"...baaab..."
+"....bab...."
+".....b....."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x14
+String=Diamant bleu
+DayXpm="11 11 3 1"
+"a c #0A8FD0"
+"b c #000000"
+". c none"
+".....b....."
+"....bab...."
+"...baaab..."
+"..baaaaab.."
+".baaaaaaab."
+"baaaaaaaaab"
+".baaaaaaab."
+"..baaaaab.."
+"...baaab..."
+"....bab...."
+".....b....."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x15
+String=Diamant violet
+DayXpm="11 11 3 1"
+"a c #8A2BE2"
+"b c #000000"
+". c none"
+".....b....."
+"....bab...."
+"...baaab..."
+"..baaaaab.."
+".baaaaaaab."
+"baaaaaaaaab"
+".baaaaaaab."
+"..baaaaab.."
+"...baaab..."
+"....bab...."
+".....b....."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x16
+String=Diamant noir
+DayXpm="11 11 3 1"
+"a c #000000"
+"b c #FFFFFF"
+". c none"
+".....b....."
+"....bab...."
+"...baaab..."
+"..baaaaab.."
+".baaaaaaab."
+"baaaaaaaaab"
+".baaaaaaab."
+"..baaaaab.."
+"...baaab..."
+"....bab...."
+".....b....."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x17
+String=Diamant blanc
+DayXpm="11 11 3 1"
+"a c #FFFFFF"
+"b c #000000"
+". c none"
+".....b....."
+"....bab...."
+"...baaab..."
+"..baaaaab.."
+".baaaaaaab."
+"baaaaaaaaab"
+".baaaaaaab."
+"..baaaaab.."
+"...baaab..."
+"....bab...."
+".....b....."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x18
+String=Triangle rouge
+DayXpm="11 11 3 1"
+"a c #E8210C"
+"b c #000000"
+". c none"
+"..........."
+".....b....."
+"....bab...."
+"....bab...."
+"...baaab..."
+"...baaab..."
+"..baaaaab.."
+".baaaaaaab."
+".baaaaaaab."
+"bbbbbbbbbbb"
+"..........."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x19
+String=Triangle orange
+DayXpm="11 11 3 1"
+"a c #FF8C00"
+"b c #000000"
+". c none"
+"..........."
+".....b....."
+"....bab...."
+"....bab...."
+"...baaab..."
+"...baaab..."
+"..baaaaab.."
+".baaaaaaab."
+".baaaaaaab."
+"bbbbbbbbbbb"
+"..........."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x1a
+String=Triangle jaune
+DayXpm="11 11 3 1"
+"a c #FFE000"
+"b c #000000"
+". c none"
+"..........."
+".....b....."
+"....bab...."
+"....bab...."
+"...baaab..."
+"...baaab..."
+"..baaaaab.."
+".baaaaaaab."
+".baaaaaaab."
+"bbbbbbbbbbb"
+"..........."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x1b
+String=Triangle vert
+DayXpm="11 11 3 1"
+"a c #2E9A12"
+"b c #000000"
+". c none"
+"..........."
+".....b....."
+"....bab...."
+"....bab...."
+"...baaab..."
+"...baaab..."
+"..baaaaab.."
+".baaaaaaab."
+".baaaaaaab."
+"bbbbbbbbbbb"
+"..........."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x1c
+String=Triangle bleu
+DayXpm="11 11 3 1"
+"a c #0A8FD0"
+"b c #000000"
+". c none"
+"..........."
+".....b....."
+"....bab...."
+"....bab...."
+"...baaab..."
+"...baaab..."
+"..baaaaab.."
+".baaaaaaab."
+".baaaaaaab."
+"bbbbbbbbbbb"
+"..........."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x1d
+String=Triangle violet
+DayXpm="11 11 3 1"
+"a c #8A2BE2"
+"b c #000000"
+". c none"
+"..........."
+".....b....."
+"....bab...."
+"....bab...."
+"...baaab..."
+"...baaab..."
+"..baaaaab.."
+".baaaaaaab."
+".baaaaaaab."
+"bbbbbbbbbbb"
+"..........."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x1e
+String=Triangle noir
+DayXpm="11 11 3 1"
+"a c #000000"
+"b c #FFFFFF"
+". c none"
+"..........."
+".....b....."
+"....bab...."
+"....bab...."
+"...baaab..."
+"...baaab..."
+"..baaaaab.."
+".baaaaaaab."
+".baaaaaaab."
+"bbbbbbbbbbb"
+"..........."
+[end]
+
+[_point]
+Type=0x64
+SubType=0x1f
+String=Triangle blanc
+DayXpm="11 11 3 1"
+"a c #FFFFFF"
+"b c #000000"
+". c none"
+"..........."
+".....b....."
+"....bab...."
+"....bab...."
+"...baaab..."
+"...baaab..."
+"..baaaaab.."
+".baaaaaaab."
+".baaaaaaab."
+"bbbbbbbbbbb"
+"..........."
+[end]
+

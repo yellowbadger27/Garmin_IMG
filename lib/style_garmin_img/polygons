@@ -1,0 +1,18 @@
+# Fichier généré par scripts/generer_style_typ.py - ne pas modifier à la main
+
+garmin_geom=polygone & garmin_couleur=rouge [0x01 resolution 20]
+garmin_geom=polygone & garmin_couleur=orange [0x02 resolution 20]
+garmin_geom=polygone & garmin_couleur=jaune [0x03 resolution 20]
+garmin_geom=polygone & garmin_couleur=vert_lime [0x04 resolution 20]
+garmin_geom=polygone & garmin_couleur=vert [0x05 resolution 20]
+garmin_geom=polygone & garmin_couleur=vert_fonce [0x06 resolution 20]
+garmin_geom=polygone & garmin_couleur=cyan [0x07 resolution 20]
+garmin_geom=polygone & garmin_couleur=bleu [0x08 resolution 20]
+garmin_geom=polygone & garmin_couleur=bleu_marine [0x09 resolution 20]
+garmin_geom=polygone & garmin_couleur=violet [0x0a resolution 20]
+garmin_geom=polygone & garmin_couleur=rose [0x0b resolution 20]
+garmin_geom=polygone & garmin_couleur=brun [0x0c resolution 20]
+garmin_geom=polygone & garmin_couleur=noir [0x0d resolution 20]
+garmin_geom=polygone & garmin_couleur=gris_fonce [0x0e resolution 20]
+garmin_geom=polygone & garmin_couleur=gris [0x0f resolution 20]
+garmin_geom=polygone & garmin_couleur=blanc [0x10 resolution 20]

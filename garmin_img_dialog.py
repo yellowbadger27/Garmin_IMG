@@ -24,10 +24,28 @@
 
 import os
 import html
+import shutil
+import glob
+import hashlib
+import tempfile
 
 from qgis.PyQt import uic
 from qgis.PyQt import QtWidgets
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt import QtCore
+from qgis.PyQt.QtCore import Qt, QSettings, QSize
+from qgis.PyQt.QtGui import QColor, QIcon, QPixmap, QPainter
+from qgis.PyQt.QtWidgets import QHeaderView, QFileDialog, QComboBox
+from qgis.core import (
+    NULL,
+    QgsProject,
+    QgsVectorLayer,
+    QgsGeometry,
+    QgsWkbTypes,
+    QgsCoordinateTransform,
+    QgsCoordinateReferenceSystem,
+)
+
+from . import palette
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(
@@ -37,8 +55,21 @@ FORM_CLASS, _ = uic.loadUiType(
     from_imports=True,
     import_from='garmin_img')
 
+# Clés QSettings pour mémoriser les préférences entre les sessions
+SETTINGS_MKGMAP = "GarminIMG/mkgmap_path"
+SETTINGS_JAVA = "GarminIMG/java_path"
+SETTINGS_RESULTAT = "GarminIMG/resultat_dir"
+
 
 class GarminIMGDialog(QtWidgets.QDialog, FORM_CLASS):
+
+    # Ajustement fin vertical pour le checkbox "tout sélectionner" dans
+    # l'en-tête du tableau (négatif = remonte, positif = descend)
+    SELECT_ALL_Y_OFFSET = -2
+
+    # Colonnes du tableau des couches
+    COL_CHECK, COL_NOM, COL_ENTITES, COL_COULEUR, COL_LARGEUR, COL_ETIQUETTE = range(6)
+
     def __init__(self, parent=None):
         """Constructor."""
         super(GarminIMGDialog, self).__init__(parent)
@@ -47,12 +78,409 @@ class GarminIMGDialog(QtWidgets.QDialog, FORM_CLASS):
         # Section "Paramètres avancés" repliable, fermée par défaut
         self.frmAdvanced.setVisible(False)
         self.btnAdvance.toggled.connect(self._on_advanced_toggled)
+        self._center_select_all_checkbox()
+
+        self.btnAnnuler.clicked.connect(self.reject)
+        self.btnConfirmer.clicked.connect(self._on_confirm)
+        self.btnResultat.clicked.connect(self._on_browse_resultat)
+        self.btnmkgmap.clicked.connect(self._on_browse_mkgmap)
+        self.btnJava.clicked.connect(self._on_browse_java)
+
+        self._configurer_colonnes()
+
+        self._load_layers()
+        self.chkSelectAll.toggled.connect(self._on_select_all_toggled)
+
+        self._load_preferences()
 
     def _on_advanced_toggled(self, checked):
         self.frmAdvanced.setVisible(checked)
         self.btnAdvance.setArrowType(
             Qt.DownArrow if checked else Qt.RightArrow
         )
+
+    def _on_confirm(self):
+        if not self.lineResultat.text().strip():
+            self.log_error("Veuillez spécifier un chemin de résultat.")
+            return
+        if not self.lineNom.text().strip():
+            self.log_error("Veuillez spécifier un nom.")
+            return
+        if not self._has_selected_layer():
+            self.log_error("Veuillez sélectionner au moins une couche.")
+            return
+
+        mkgmap_path = self.linemkgmap.text().strip()
+        if not mkgmap_path:
+            self.log_error("Veuillez spécifier le chemin vers mkgmap.jar.")
+            return
+        if not os.path.isfile(mkgmap_path):
+            self.log_error(f"mkgmap.jar introuvable : {mkgmap_path}")
+            return
+
+        java_path = self.lineJava.text().strip()
+        if not java_path:
+            self.log_error("Veuillez spécifier le chemin vers java.exe.")
+            return
+        if not os.path.isfile(java_path):
+            self.log_error(f"java.exe introuvable : {java_path}")
+            return
+
+        style_dir = os.path.join(os.path.dirname(__file__), "lib", "style_garmin_img")
+        typ_path = os.path.join(os.path.dirname(__file__), "lib", "garmin_img.typ")
+        if not os.path.isdir(style_dir):
+            self.log_error(f"Dossier de style introuvable : {style_dir}")
+            return
+        if not os.path.isfile(typ_path):
+            self.log_error(f"Fichier .typ introuvable : {typ_path}")
+            return
+
+        self._save_preferences()
+
+        try:
+            self._run_export(mkgmap_path, java_path, style_dir, typ_path)
+        except Exception as exc:
+            self.log_error(f"Erreur inattendue durant l'export : {exc}")
+
+    # ------------------------------------------------------------------
+    # Export : couches QGIS cochées -> .osm -> mkgmap -> .img
+    # ------------------------------------------------------------------
+
+    def _run_export(self, mkgmap_path, java_path, style_dir, typ_path):
+        resultat_dir = self.lineResultat.text().strip()
+        nom = self.lineNom.text().strip()
+        osm_path = os.path.join(resultat_dir, f"{nom}.osm")
+
+        self.log_info("Export des couches sélectionnées en .osm...")
+        nb_features = self._write_osm_file(osm_path)
+        if nb_features == 0:
+            self.log_warning("Aucune entité exportée (les couches cochées sont-elles vides ?).")
+            return
+        self.log_success(f"{nb_features} entité(s) exportée(s) vers {osm_path}")
+
+        self.log_info("Lancement de mkgmap...")
+        succes = self._lancer_mkgmap(java_path, mkgmap_path, style_dir, typ_path, osm_path, resultat_dir, nom)
+
+        if succes:
+            self.log_success(f"Export terminé : {os.path.join(resultat_dir, nom + '.img')}")
+        else:
+            self.log_error("mkgmap a rencontré une erreur. Consultez les messages ci-dessus.")
+
+    def _write_osm_file(self, osm_path):
+        wgs84 = QgsCoordinateReferenceSystem("EPSG:4326")
+        node_id = [1]
+        way_id = [1]
+        relation_id = [1]
+        nb_entites = 0
+
+        lignes_xml = ['<?xml version="1.0" encoding="UTF-8"?>', '<osm version="0.6">']
+        nodes_xml = []
+        ways_xml = []
+        relations_xml = []
+
+        for row in range(self.tblCouches.rowCount()):
+            item_check = self.tblCouches.item(row, 0)
+            if not (item_check and item_check.checkState() == Qt.Checked):
+                continue
+
+            layer = self._layers_by_row[row]
+            type_geom = layer.geometryType()
+
+            # Tags de style selon le type de géométrie de la couche
+            couleur = self.tblCouches.cellWidget(row, self.COL_COULEUR).currentData()
+            if type_geom == QgsWkbTypes.PointGeometry:
+                tags_style = [f'<tag k="garmin_symbole" v="{couleur}"/>']
+            elif type_geom == QgsWkbTypes.LineGeometry:
+                largeur = self.tblCouches.cellWidget(row, self.COL_LARGEUR).currentData()
+                tags_style = [
+                    '<tag k="garmin_geom" v="ligne"/>',
+                    f'<tag k="garmin_couleur" v="{couleur}"/>',
+                    f'<tag k="garmin_largeur" v="{largeur}"/>',
+                ]
+            else:
+                tags_style = [
+                    '<tag k="garmin_geom" v="polygone"/>',
+                    f'<tag k="garmin_couleur" v="{couleur}"/>',
+                ]
+
+            combo_etiquette = self.tblCouches.cellWidget(row, self.COL_ETIQUETTE)
+            champ_etiquette = combo_etiquette.currentText() if combo_etiquette else "Aucune"
+
+            transform = QgsCoordinateTransform(layer.crs(), wgs84, QgsProject.instance())
+
+            for feature in layer.getFeatures():
+                geom = feature.geometry()
+                if geom is None or geom.isEmpty():
+                    continue
+                geom_t = QgsGeometry(geom)
+                geom_t.transform(transform)
+
+                tags = list(tags_style)
+                if champ_etiquette != "Aucune":
+                    valeur = feature.attribute(champ_etiquette)
+                    if valeur is not None and valeur != NULL and str(valeur).strip():
+                        tags.append(f'<tag k="name" v="{html.escape(str(valeur).strip())}"/>')
+
+                if geom_t.type() == QgsWkbTypes.PointGeometry:
+                    points = geom_t.asMultiPoint() if geom_t.isMultipart() else [geom_t.asPoint()]
+                    for pt in points:
+                        nid = node_id[0]
+                        node_id[0] += 1
+                        nodes_xml.append(
+                            f'<node id="{nid}" lat="{pt.y():.7f}" lon="{pt.x():.7f}" version="1">'
+                            + "".join(tags) + "</node>"
+                        )
+                        nb_entites += 1
+
+                elif geom_t.type() == QgsWkbTypes.LineGeometry:
+                    parties = geom_t.asMultiPolyline() if geom_t.isMultipart() else [geom_t.asPolyline()]
+                    for partie in parties:
+                        if len(partie) < 2:
+                            continue
+                        refs = []
+                        for pt in partie:
+                            nid = node_id[0]
+                            node_id[0] += 1
+                            nodes_xml.append(f'<node id="{nid}" lat="{pt.y():.7f}" lon="{pt.x():.7f}" version="1"/>')
+                            refs.append(f'<nd ref="{nid}"/>')
+                        wid = way_id[0]
+                        way_id[0] += 1
+                        ways_xml.append(f'<way id="{wid}" version="1">' + "".join(refs) + "".join(tags) + "</way>")
+                        nb_entites += 1
+
+                elif geom_t.type() == QgsWkbTypes.PolygonGeometry:
+                    polygones = geom_t.asMultiPolygon() if geom_t.isMultipart() else [geom_t.asPolygon()]
+                    a_des_trous = any(len(polygone) > 1 for polygone in polygones)
+
+                    if not a_des_trous:
+                        # Polygone simple, sans trou : un seul way tagué directement
+                        for polygone in polygones:
+                            if not polygone:
+                                continue
+                            anneau_exterieur = polygone[0]
+                            if len(anneau_exterieur) < 3:
+                                continue
+                            refs = []
+                            for pt in anneau_exterieur:
+                                nid = node_id[0]
+                                node_id[0] += 1
+                                nodes_xml.append(
+                                    f'<node id="{nid}" lat="{pt.y():.7f}" lon="{pt.x():.7f}" version="1"/>'
+                                )
+                                refs.append(f'<nd ref="{nid}"/>')
+                            wid = way_id[0]
+                            way_id[0] += 1
+                            tags_polygone = tags + ['<tag k="area" v="yes"/>']
+                            ways_xml.append(
+                                f'<way id="{wid}" version="1">' + "".join(refs) + "".join(tags_polygone) + "</way>"
+                            )
+                            nb_entites += 1
+                    else:
+                        # Polygone avec un ou plusieurs trous : relation multipolygon
+                        # (anneau extérieur = outer, chaque trou = inner), tags sur la relation
+                        membres = []
+                        for polygone in polygones:
+                            for idx, anneau in enumerate(polygone):
+                                if len(anneau) < 3:
+                                    continue
+                                refs = []
+                                for pt in anneau:
+                                    nid = node_id[0]
+                                    node_id[0] += 1
+                                    nodes_xml.append(
+                                        f'<node id="{nid}" lat="{pt.y():.7f}" lon="{pt.x():.7f}" version="1"/>'
+                                    )
+                                    refs.append(f'<nd ref="{nid}"/>')
+                                wid = way_id[0]
+                                way_id[0] += 1
+                                ways_xml.append(f'<way id="{wid}" version="1">' + "".join(refs) + "</way>")
+                                role = "outer" if idx == 0 else "inner"
+                                membres.append(f'<member type="way" ref="{wid}" role="{role}"/>')
+
+                        rid = relation_id[0]
+                        relation_id[0] += 1
+                        tags_relation = tags + [
+                            '<tag k="area" v="yes"/>',
+                            '<tag k="type" v="multipolygon"/>',
+                        ]
+                        relations_xml.append(
+                            f'<relation id="{rid}" version="1">'
+                            + "".join(membres) + "".join(tags_relation) + "</relation>"
+                        )
+                        nb_entites += 1
+
+        lignes_xml.extend(nodes_xml)
+        lignes_xml.extend(ways_xml)
+        lignes_xml.extend(relations_xml)
+        lignes_xml.append("</osm>")
+
+        with open(osm_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(lignes_xml))
+
+        return nb_entites
+
+    def _lancer_mkgmap(self, java_path, mkgmap_path, style_dir, typ_path, osm_path, resultat_dir, nom):
+        # mapname doit être un identifiant numérique de 8 chiffres (contrainte
+        # du format Garmin) - dérivé de façon stable (MD5) à partir du nom choisi
+        empreinte = hashlib.md5(nom.encode("utf-8")).hexdigest()
+        mapname = str(10000000 + (int(empreinte[:8], 16) % 89999999))
+
+        # mkgmap travaille dans un dossier temporaire : les fichiers
+        # intermédiaires (tuiles, osmmap.img/.tdb) n'encombrent pas le dossier
+        # de résultat et un ancien gmapsupp.img ne peut pas être confondu
+        # avec celui qu'on vient de produire.
+        dossier_travail = tempfile.mkdtemp(prefix="garmin_img_")
+
+        try:
+            process = QtCore.QProcess(self)
+            process.setWorkingDirectory(dossier_travail)
+
+            args = [
+                "-jar", mkgmap_path,
+                f"--style-file={style_dir}",
+                f"--output-dir={dossier_travail}",
+                f"--mapname={mapname}",
+                "--family-id=6543",
+                "--product-id=1",
+                # Conserve les accents (é, è, à...) dans les étiquettes
+                "--code-page=1252",
+                # Produit un gmapsupp.img qui contient la carte ET le TYP :
+                # sans cette option, le TYP n'est pas intégré et le GPS
+                # affiche ses couleurs par défaut
+                "--gmapsupp",
+                osm_path,
+                typ_path,
+            ]
+
+            process.setProgram(java_path)
+            process.setArguments(args)
+
+            process.readyReadStandardOutput.connect(
+                lambda: self._lire_sortie_processus(process, erreur=False)
+            )
+            process.readyReadStandardError.connect(
+                lambda: self._lire_sortie_processus(process, erreur=True)
+            )
+
+            process.start()
+            if not process.waitForStarted():
+                self.log_error(f"Impossible de lancer java : {java_path}")
+                return False
+            process.waitForFinished(-1)
+
+            if process.exitStatus() != QtCore.QProcess.NormalExit or process.exitCode() != 0:
+                return False
+
+            return self._deplacer_gmapsupp(dossier_travail, resultat_dir, nom)
+        finally:
+            shutil.rmtree(dossier_travail, ignore_errors=True)
+
+    def _deplacer_gmapsupp(self, dossier_travail, resultat_dir, nom):
+        source = os.path.join(dossier_travail, "gmapsupp.img")
+        if not os.path.isfile(source):
+            self.log_error("mkgmap s'est terminé sans erreur mais gmapsupp.img n'a pas été produit.")
+            return False
+
+        destination = os.path.join(resultat_dir, f"{nom}.img")
+        try:
+            if os.path.isfile(destination):
+                os.remove(destination)
+            shutil.move(source, destination)
+        except OSError as exc:
+            self.log_error(f"Impossible de copier le fichier final : {exc}")
+            return False
+
+        return True
+
+    def _lire_sortie_processus(self, process, erreur):
+        if erreur:
+            texte = bytes(process.readAllStandardError()).decode("utf-8", errors="replace")
+        else:
+            texte = bytes(process.readAllStandardOutput()).decode("utf-8", errors="replace")
+
+        for ligne in texte.splitlines():
+            ligne = ligne.strip()
+            if not ligne:
+                continue
+            if "SEVERE" in ligne or "ERROR" in ligne.upper():
+                self.log_error(ligne)
+            elif "WARNING" in ligne.upper():
+                self.log_warning(ligne)
+            else:
+                self.log_info(ligne)
+
+    def _has_selected_layer(self):
+        for row in range(self.tblCouches.rowCount()):
+            item = self.tblCouches.item(row, 0)
+            if item and item.checkState() == Qt.Checked:
+                return True
+        return False
+
+    def _on_browse_resultat(self):
+        dossier = QFileDialog.getExistingDirectory(
+            self,
+            "Choisir le dossier de destination",
+            self.lineResultat.text().strip() or ""
+        )
+        if dossier:
+            self.lineResultat.setText(dossier)
+            self._save_preferences()
+
+    def _on_browse_mkgmap(self):
+        fichier, _ = QFileDialog.getOpenFileName(
+            self,
+            "Choisir mkgmap.jar",
+            self.linemkgmap.text().strip() or "",
+            "Fichier jar (*.jar);;Tous les fichiers (*)"
+        )
+        if fichier:
+            self.linemkgmap.setText(fichier)
+            self._save_preferences()
+
+    def _on_browse_java(self):
+        fichier, _ = QFileDialog.getOpenFileName(
+            self,
+            "Choisir java.exe",
+            self.lineJava.text().strip() or "",
+            "Exécutable (*.exe);;Tous les fichiers (*)"
+        )
+        if fichier:
+            self.lineJava.setText(fichier)
+            self._save_preferences()
+
+    def _center_select_all_checkbox(self):
+        # Le checkbox est superposé sur l'en-tête de la colonne 0 (texte vide),
+        # pas sur le coin entre les barres de défilement (setCornerWidget ne
+        # convient pas ici : ce coin est en bas à droite, pas en haut à gauche).
+        header = self.tblCouches.horizontalHeader()
+
+        # Retire les marges/paddings par défaut du style, qui décalent
+        # visuellement la case par rapport à sizeHint()
+        self.chkSelectAll.setStyleSheet("QCheckBox { margin: 0px; padding: 0px; }")
+
+        # Largeur fixe de la colonne 0, juste assez pour contenir le checkbox
+        header.setSectionResizeMode(0, QHeaderView.Fixed)
+        checkbox_width = self.chkSelectAll.sizeHint().width()
+        self.tblCouches.setColumnWidth(0, checkbox_width + 12)
+
+        self.chkSelectAll.setParent(header)
+        self.chkSelectAll.raise_()
+
+        self._reposition_select_all_checkbox()
+
+        header.sectionResized.connect(lambda *args: self._reposition_select_all_checkbox())
+        header.geometriesChanged.connect(self._reposition_select_all_checkbox)
+
+    def _reposition_select_all_checkbox(self):
+        header = self.tblCouches.horizontalHeader()
+        col_width = header.sectionSize(0)
+        col_x = header.sectionViewportPosition(0)
+        checkbox_size = self.chkSelectAll.sizeHint()
+
+        x = col_x + (col_width - checkbox_size.width()) // 2
+        y = (header.height() - checkbox_size.height()) // 2 + self.SELECT_ALL_Y_OFFSET
+        self.chkSelectAll.move(max(x, 0), max(y, 0))
+        self.chkSelectAll.show()
 
     def log_info(self, message):
         safe_message = html.escape(message)
@@ -69,3 +497,264 @@ class GarminIMGDialog(QtWidgets.QDialog, FORM_CLASS):
     def log_warning(self, message):
         safe_message = html.escape(message)
         self.journal.append(f'<span style="color:#cc8800;">⚠ {safe_message}</span>')
+
+    # ------------------------------------------------------------------
+    # Chargement des couches du projet QGIS dans le tableau
+    # ------------------------------------------------------------------
+
+    def _configurer_colonnes(self):
+        header = self.tblCouches.horizontalHeader()
+        header.setSectionResizeMode(self.COL_NOM, QHeaderView.Stretch)
+        for col, largeur in (
+            (self.COL_ENTITES, 70),
+            (self.COL_COULEUR, 150),
+            (self.COL_LARGEUR, 80),
+            (self.COL_ETIQUETTE, 110),
+        ):
+            header.setSectionResizeMode(col, QHeaderView.Fixed)
+            self.tblCouches.setColumnWidth(col, largeur)
+        self.tblCouches.verticalHeader().setVisible(False)
+
+    def _load_layers(self):
+        self.tblCouches.setRowCount(0)
+
+        types_geom = (
+            QgsWkbTypes.PointGeometry,
+            QgsWkbTypes.LineGeometry,
+            QgsWkbTypes.PolygonGeometry,
+        )
+        layers = QgsProject.instance().mapLayers().values()
+        vector_layers = [
+            l for l in layers
+            if isinstance(l, QgsVectorLayer) and l.geometryType() in types_geom
+        ]
+        self._layers_by_row = vector_layers
+
+        self.tblCouches.setRowCount(len(vector_layers))
+
+        for row, layer in enumerate(vector_layers):
+            type_geom = layer.geometryType()
+
+            # Case à cocher
+            item_check = QtWidgets.QTableWidgetItem()
+            item_check.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
+            item_check.setCheckState(Qt.Unchecked)
+            self.tblCouches.setItem(row, self.COL_CHECK, item_check)
+
+            # Nom et nombre d'entités (lecture seule)
+            item_nom = QtWidgets.QTableWidgetItem(layer.name())
+            item_nom.setFlags(Qt.ItemIsEnabled)
+            self.tblCouches.setItem(row, self.COL_NOM, item_nom)
+            item_nb = QtWidgets.QTableWidgetItem(str(layer.featureCount()))
+            item_nb.setFlags(Qt.ItemIsEnabled)
+            item_nb.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            self.tblCouches.setItem(row, self.COL_ENTITES, item_nb)
+
+            # Couleur (lignes/polygones) ou symbole (points), présélectionné
+            # d'après la symbologie QGIS de la couche
+            couleur_qgis = self._get_layer_color(layer)
+            if type_geom == QgsWkbTypes.PointGeometry:
+                combo_couleur = self._combo_symboles(couleur_qgis)
+            else:
+                combo_couleur = self._combo_couleurs(couleur_qgis)
+            self.tblCouches.setCellWidget(row, self.COL_COULEUR, combo_couleur)
+
+            # Largeur : seulement pour les lignes
+            if type_geom == QgsWkbTypes.LineGeometry:
+                combo_largeur = QComboBox()
+                for cle, libelle, _ in palette.LARGEURS:
+                    combo_largeur.addItem(libelle, cle)
+                combo_largeur.setCurrentIndex(combo_largeur.findData(self._get_width_category(layer)))
+                self.tblCouches.setCellWidget(row, self.COL_LARGEUR, combo_largeur)
+            else:
+                item_vide = QtWidgets.QTableWidgetItem()
+                item_vide.setFlags(Qt.NoItemFlags)
+                item_vide.setBackground(QColor("#E6E6E6"))
+                self.tblCouches.setItem(row, self.COL_LARGEUR, item_vide)
+
+            # Étiquette : Aucune ou un champ de la couche
+            combo_etiquette = QComboBox()
+            combo_etiquette.addItem("Aucune")
+            combo_etiquette.addItems(layer.fields().names())
+            combo_etiquette.setCurrentText(self._get_current_label_field(layer))
+            self.tblCouches.setCellWidget(row, self.COL_ETIQUETTE, combo_etiquette)
+
+        if not vector_layers:
+            self.log_warning("Aucune couche vectorielle (point, ligne ou polygone) trouvée dans le projet.")
+
+    # ------------------------------------------------------------------
+    # Menus déroulants de couleurs et de symboles
+    # ------------------------------------------------------------------
+
+    def _combo_couleurs(self, couleur_qgis):
+        combo = QComboBox()
+        combo.setIconSize(QSize(28, 12))
+        for cle, libelle, hexa in palette.COULEURS:
+            combo.addItem(self._icone_couleur(hexa), libelle, cle)
+        if couleur_qgis is not None:
+            cles = [c for c, _, _ in palette.COULEURS]
+            combo.setCurrentIndex(cles.index(self._couleur_la_plus_proche(couleur_qgis, cles)))
+        return combo
+
+    def _combo_symboles(self, couleur_qgis):
+        combo = QComboBox()
+        combo.setIconSize(QSize(16, 16))
+        for cle, libelle, forme, cle_couleur in palette.symboles():
+            combo.addItem(self._icone_symbole(forme, cle_couleur), libelle, cle)
+        if couleur_qgis is not None:
+            # Rond de la couleur la plus proche de celle de QGIS
+            proche = self._couleur_la_plus_proche(couleur_qgis, palette.COULEURS_POINTS)
+            combo.setCurrentIndex(combo.findData(f"rond_{proche}"))
+        return combo
+
+    @staticmethod
+    def _couleur_la_plus_proche(couleur, cles):
+        def distance(cle):
+            c = QColor(palette.couleur_hex(cle))
+            return (
+                (c.red() - couleur.red()) ** 2
+                + (c.green() - couleur.green()) ** 2
+                + (c.blue() - couleur.blue()) ** 2
+            )
+        return min(cles, key=distance)
+
+    @staticmethod
+    def _icone_couleur(hexa):
+        pixmap = QPixmap(28, 12)
+        pixmap.fill(QColor(hexa))
+        painter = QPainter(pixmap)
+        painter.setPen(QColor("#000000"))
+        painter.drawRect(0, 0, 27, 11)
+        painter.end()
+        return QIcon(pixmap)
+
+    @staticmethod
+    def _icone_symbole(forme, cle_couleur):
+        # Même dessin pixel par pixel que l'icône du TYP, agrandi x1 (11 px)
+        remplissage = QColor(palette.couleur_hex(cle_couleur))
+        contour = QColor("#FFFFFF" if cle_couleur == "noir" else "#000000")
+        rangees = palette.pixels_icone(forme)
+        taille = len(rangees)
+        pixmap = QPixmap(taille, taille)
+        pixmap.fill(Qt.transparent)
+        painter = QPainter(pixmap)
+        for y, rangee in enumerate(rangees):
+            for x, pixel in enumerate(rangee):
+                if pixel == "a":
+                    painter.setPen(remplissage)
+                    painter.drawPoint(x, y)
+                elif pixel == "b":
+                    painter.setPen(contour)
+                    painter.drawPoint(x, y)
+        painter.end()
+        return QIcon(pixmap)
+
+    def _get_width_category(self, layer):
+        try:
+            renderer = layer.renderer()
+            if renderer is not None and hasattr(renderer, "symbol"):
+                symbol = renderer.symbol()
+                if symbol is not None and hasattr(symbol, "width"):
+                    width = symbol.width()
+                    if width < 0.3:
+                        return "mince"
+                    if width > 0.6:
+                        return "large"
+                    return "moyen"
+        except Exception:
+            pass
+        return "moyen"
+
+    def _get_current_label_field(self, layer):
+        try:
+            if layer.labelsEnabled():
+                labeling = layer.labeling()
+                if labeling is not None and hasattr(labeling, "settings"):
+                    settings = labeling.settings()
+                    if not settings.isExpression:
+                        field_name = settings.fieldName
+                        if field_name in layer.fields().names():
+                            return field_name
+        except Exception:
+            pass
+        return "Aucune"
+
+    def _get_layer_color(self, layer):
+        try:
+            renderer = layer.renderer()
+            if renderer is not None and hasattr(renderer, "symbol"):
+                symbol = renderer.symbol()
+                if symbol is not None:
+                    return symbol.color()
+        except Exception:
+            pass
+        return None
+
+    def _on_select_all_toggled(self, checked):
+        state = Qt.Checked if checked else Qt.Unchecked
+        for row in range(self.tblCouches.rowCount()):
+            item = self.tblCouches.item(row, 0)
+            if item:
+                item.setCheckState(state)
+
+    # ------------------------------------------------------------------
+    # Préférences persistantes (chemins mkgmap.jar / java.exe / résultat)
+    # ------------------------------------------------------------------
+
+    def _load_preferences(self):
+        settings = QSettings()
+
+        bundled_mkgmap = os.path.join(os.path.dirname(__file__), "lib", "mkgmap.jar")
+        if os.path.isfile(bundled_mkgmap):
+            self.linemkgmap.setText(bundled_mkgmap)
+            self.log_info("mkgmap.jar fourni avec le plugin utilisé automatiquement.")
+        else:
+            self.linemkgmap.setText(settings.value(SETTINGS_MKGMAP, "", type=str))
+
+        self.lineResultat.setText(settings.value(SETTINGS_RESULTAT, "", type=str))
+
+        saved_java = settings.value(SETTINGS_JAVA, "", type=str)
+        if saved_java:
+            self.lineJava.setText(saved_java)
+        else:
+            detected = self._detect_java()
+            if detected:
+                self.lineJava.setText(detected)
+                self.log_info(f"java.exe détecté automatiquement : {detected}")
+            else:
+                self.log_warning(
+                    "java.exe introuvable automatiquement — veuillez le sélectionner manuellement."
+                )
+
+    def _detect_java(self):
+        # 1. PATH système (le cas le plus courant)
+        java_path = shutil.which("java")
+        if java_path:
+            return java_path
+
+        # 2. Variable d'environnement JAVA_HOME
+        java_home = os.environ.get("JAVA_HOME")
+        if java_home:
+            candidat = os.path.join(java_home, "bin", "java.exe")
+            if os.path.isfile(candidat):
+                return candidat
+
+        # 3. Emplacements d'installation courants sur Windows
+        motifs_courants = [
+            r"C:\Program Files\Java\*\bin\java.exe",
+            r"C:\Program Files\Eclipse Adoptium\*\bin\java.exe",
+            r"C:\Program Files\Amazon Corretto\*\bin\java.exe",
+            r"C:\Program Files (x86)\Java\*\bin\java.exe",
+        ]
+        for motif in motifs_courants:
+            correspondances = glob.glob(motif)
+            if correspondances:
+                return sorted(correspondances)[-1]  # version la plus récente
+
+        return None
+
+    def _save_preferences(self):
+        settings = QSettings()
+        settings.setValue(SETTINGS_MKGMAP, self.linemkgmap.text().strip())
+        settings.setValue(SETTINGS_JAVA, self.lineJava.text().strip())
+        settings.setValue(SETTINGS_RESULTAT, self.lineResultat.text().strip())
