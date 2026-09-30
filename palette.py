@@ -20,7 +20,7 @@ COULEURS = [
     ("vert_lime",   "Vert lime",    "#9ACD00"),
     ("vert",        "Vert",         "#2E9A12"),
     ("vert_fonce",  "Vert foncé",   "#1E5A0E"),
-    ("cyan",        "Cyan pâle",    "#B8F0FF"),
+    ("bleu_pale",   "Bleu pâle",    "#a6cee3"),
     ("bleu",        "Bleu",         "#0A8FD0"),
     ("bleu_marine", "Bleu marine",  "#0B3A6E"),
     ("violet",      "Violet",       "#8A2BE2"),

@@ -6,7 +6,7 @@ garmin_geom=polygone & garmin_couleur=jaune {name '${name}'} [0x03 resolution 20
 garmin_geom=polygone & garmin_couleur=vert_lime {name '${name}'} [0x04 resolution 20]
 garmin_geom=polygone & garmin_couleur=vert {name '${name}'} [0x05 resolution 20]
 garmin_geom=polygone & garmin_couleur=vert_fonce {name '${name}'} [0x06 resolution 20]
-garmin_geom=polygone & garmin_couleur=cyan {name '${name}'} [0x07 resolution 20]
+garmin_geom=polygone & garmin_couleur=bleu_pale {name '${name}'} [0x07 resolution 20]
 garmin_geom=polygone & garmin_couleur=bleu {name '${name}'} [0x08 resolution 20]
 garmin_geom=polygone & garmin_couleur=bleu_marine {name '${name}'} [0x09 resolution 20]
 garmin_geom=polygone & garmin_couleur=violet {name '${name}'} [0x0a resolution 20]

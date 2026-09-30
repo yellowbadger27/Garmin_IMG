@@ -61,6 +61,7 @@ class GarminIMG:
         # Declare instance attributes
         self.actions = []
         self.menu = self.tr(u'&Garmin IMG')
+        self.toolbar = None
 
         # Check if plugin was started the first time in current QGIS session
         # Must be set in initGui() to survive plugin reloads
@@ -144,8 +145,8 @@ class GarminIMG:
             action.setWhatsThis(whats_this)
 
         if add_to_toolbar:
-            # Adds plugin icon to Plugins toolbar
-            self.iface.addToolBarIcon(action)
+            # Ajoute l'icône dans la barre d'outils propre au plugin
+            self.toolbar.addAction(action)
 
         if add_to_menu:
             self.iface.addPluginToMenu(
@@ -158,6 +159,12 @@ class GarminIMG:
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
+
+        # Barre d'outils propre au plugin, séparée de la barre « Extensions ».
+        # L'objectName permet à QGIS de mémoriser sa position et sa visibilité
+        # d'une session à l'autre.
+        self.toolbar = self.iface.addToolBar(self.tr(u'Garmin IMG'))
+        self.toolbar.setObjectName(u'GarminIMGToolbar')
 
         icon_path = os.path.join(os.path.dirname(__file__), 'icon.png')
         self.add_action(
@@ -176,7 +183,12 @@ class GarminIMG:
             self.iface.removePluginMenu(
                 self.tr(u'&Garmin IMG'),
                 action)
-            self.iface.removeToolBarIcon(action)
+
+        # Supprime la barre d'outils du plugin
+        if self.toolbar is not None:
+            self.iface.mainWindow().removeToolBar(self.toolbar)
+            self.toolbar.deleteLater()
+            self.toolbar = None
 
 
     def run(self):

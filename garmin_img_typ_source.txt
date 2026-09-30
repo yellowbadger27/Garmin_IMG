@@ -170,26 +170,26 @@ Xpm="0 0 1 0"
 
 [_line]
 Type=0x13
-String=Cyan pale (mince)
+String=Bleu pale (mince)
 LineWidth=1
 Xpm="0 0 1 0"
-"a c #B8F0FF"
+"a c #a6cee3"
 [end]
 
 [_line]
 Type=0x14
-String=Cyan pale (moyen)
+String=Bleu pale (moyen)
 LineWidth=3
 Xpm="0 0 1 0"
-"a c #B8F0FF"
+"a c #a6cee3"
 [end]
 
 [_line]
 Type=0x15
-String=Cyan pale (large)
+String=Bleu pale (large)
 LineWidth=5
 Xpm="0 0 1 0"
-"a c #B8F0FF"
+"a c #a6cee3"
 [end]
 
 [_line]
@@ -452,9 +452,9 @@ Xpm="0 0 1 0"
 
 [_polygon]
 Type=0x07
-String=Cyan pale
+String=Bleu pale
 Xpm="0 0 1 0"
-"a c #B8F0FF"
+"a c #a6cee3"
 [end]
 
 [_polygon]
