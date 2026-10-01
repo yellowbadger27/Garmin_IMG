@@ -110,6 +110,13 @@ class GarminIMGDialog(QtWidgets.QDialog, FORM_CLASS):
             self.log_error("Veuillez sélectionner au moins une couche.")
             return
 
+        if self.chkSelectionSeulement.isChecked() and not self._has_any_feature_selection():
+            self.log_error(
+                "« Exporter seulement les entités sélectionnées » est coché, mais "
+                "aucune entité n'est sélectionnée dans les couches cochées."
+            )
+            return
+
         mkgmap_path = self.linemkgmap.text().strip()
         if not mkgmap_path:
             self.log_error("Veuillez spécifier le chemin vers mkgmap.jar.")
@@ -178,6 +185,8 @@ class GarminIMGDialog(QtWidgets.QDialog, FORM_CLASS):
         ways_xml = []
         relations_xml = []
 
+        selection_seulement = self.chkSelectionSeulement.isChecked()
+
         for row in range(self.tblCouches.rowCount()):
             item_check = self.tblCouches.item(row, 0)
             if not (item_check and item_check.checkState() == Qt.Checked):
@@ -185,6 +194,13 @@ class GarminIMGDialog(QtWidgets.QDialog, FORM_CLASS):
 
             layer = self._layers_by_row[row]
             type_geom = layer.geometryType()
+
+            if selection_seulement and layer.selectedFeatureCount() == 0:
+                self.log_warning(
+                    f"Couche « {layer.name()} » ignorée : aucune entité sélectionnée "
+                    "(option « sélection seulement » activée)."
+                )
+                continue
 
             # Tags de style selon le type de géométrie de la couche
             couleur = self.tblCouches.cellWidget(row, self.COL_COULEUR).currentData()
@@ -208,7 +224,8 @@ class GarminIMGDialog(QtWidgets.QDialog, FORM_CLASS):
 
             transform = QgsCoordinateTransform(layer.crs(), wgs84, QgsProject.instance())
 
-            for feature in layer.getFeatures():
+            features = layer.getSelectedFeatures() if selection_seulement else layer.getFeatures()
+            for feature in features:
                 geom = feature.geometry()
                 if geom is None or geom.isEmpty():
                     continue
@@ -426,6 +443,18 @@ class GarminIMGDialog(QtWidgets.QDialog, FORM_CLASS):
             item = self.tblCouches.item(row, 0)
             if item and item.checkState() == Qt.Checked:
                 return True
+        return False
+
+    def _has_any_feature_selection(self):
+        """Vrai si au moins une couche cochée dans le tableau a des entités
+        sélectionnées dans le canevas QGIS (utilisé pour valider l'option
+        « Exporter seulement les entités sélectionnées »)."""
+        for row in range(self.tblCouches.rowCount()):
+            item = self.tblCouches.item(row, 0)
+            if item and item.checkState() == Qt.Checked:
+                layer = self._layers_by_row[row]
+                if layer.selectedFeatureCount() > 0:
+                    return True
         return False
 
     def _on_browse_resultat(self):

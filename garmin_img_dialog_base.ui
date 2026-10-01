@@ -91,6 +91,13 @@
      </widget>
     </item>
     <item>
+     <widget class="QCheckBox" name="chkSelectionSeulement">
+      <property name="text">
+       <string>Exporter seulement les entités sélectionnées</string>
+      </property>
+     </widget>
+    </item>
+    <item>
      <widget class="QToolButton" name="btnAdvance">
       <property name="text">
        <string>Paramètres avancés</string>
